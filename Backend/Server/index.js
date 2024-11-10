@@ -1,129 +1,74 @@
 import express from 'express';
 import { PrismaClient } from '@prisma/client';
-import { WebSocketServer,WebSocket } from 'ws'; 
-import cors from 'cors';
+import axios from 'axios';
 import dotenv from 'dotenv';
 
 dotenv.config();
-
-const prisma = new PrismaClient();
 const app = express();
-const PORT = process.env.PORT || 5000;
-
+const prisma = new PrismaClient();
+const pollingInterval = 3000; // Poll every 3 seconds
+const telegramBotApiUrl = 'https://telegram-bot-ijo7.onrender.com/';
 
 app.use(express.json());
-app.use(cors());
 
-const wss = new WebSocketServer({ port: 5001 });
+async function fetchAndStoreMessages() {
+  try {
+    const response = await axios.get(telegramBotApiUrl);
+    const messageData = response.data.data; 
 
-let clients = [];
+    if (messageData) {
+      const { chat_id, channel_name, username, groupname ,userid, text, timestamp, keywords_detected } = messageData;
 
-wss.on('connection', (ws) => {
-  clients.push(ws);
-  console.log('Client connected to WebSocket server.');
-
-  ws.on('close', () => {
-    clients = clients.filter(client => client !== ws);
-    console.log('Client disconnected from WebSocket server.');
-  });
-});
-
-function notifyClients(message) {
-  clients.forEach((client) => {
-    if (client.readyState === WebSocket.OPEN) {
-      client.send(JSON.stringify(message));
+      await prisma.message.create({
+        data: {
+          chat_id,
+          channel_name ,
+          username,
+          groupname,
+          user_id: BigInt(userid),
+          text,
+          timestamp: new Date(timestamp),
+          keywords_detected,
+        },
+      });
+      console.log("Stored message:", messageData);
+    } else {
+      console.log("No new messages detected.");
     }
-  });
+  } catch (error) {
+    console.error("Failed to fetch or store messages:", error.message);
+  }
 }
 
-const pythonWs = new WebSocket('ws://localhost:5002/ws'); 
-
-pythonWs.on('open', () => {
-  console.log('Connected to Python WebSocket server.');
-});
-
-pythonWs.on('message', async (data) => {
-  const messageData = JSON.parse(data);
-  console.log('Received message from Python WebSocket:', messageData);
-
-  await prisma.message.create({
-    data: {
-      chat_id: messageData.chat_id,
-      channel_name: messageData.channel_name,
-      username: messageData.username,
-      groupname: messageData.groupname,
-      user_id:messageData.userid,
-      text: messageData.text,
-      timestamp: new Date(messageData.timestamp),
-      keywords_detected: messageData.keywords_detected,
-    },
-  });
-
-  notifyClients(messageData);
-});
-
-app.get('/messages', async (req, res) => {
-  try {
-    const messages = await prisma.message.findMany();
-    
-    const serializedMessages = messages.map(message => ({
-      ...message,
-      chat_id: message.chat_id.toString(), 
-      user_id: message.user_id.toString(),
-    }));
-
-    res.json(serializedMessages); 
-  } catch (error) {
-    console.error("Error fetching messages:", error);
-    res.status(500).json({ error: 'Something went wrong' });
-  }
-});
+// Periodically call the fetchAndStoreMessages function
+setInterval(fetchAndStoreMessages, pollingInterval);
 
 app.get('/stats', async (req, res) => {
   try {
+    // Fetch count of messages sent today and total message count
     const today = new Date();
     today.setHours(0, 0, 0, 0);
 
     const messagesToday = await prisma.message.count({
       where: {
         timestamp: {
-          gte: today, 
+          gte: today,
         },
       },
     });
+
     const totalMessages = await prisma.message.count();
-    res.json({
+
+    res.status(200).json({
       messagesToday,
       totalMessages,
-      today,
     });
+  } catch (error) {
+    console.error("Error fetching stats:", error);
+    res.status(500).json({ error: 'Failed to fetch stats' });
   }
-  catch (error) {
-    console.error(error);
-    res.status(500).json({ error: 'Something went wrong' });
-  }
-})
-
-app.post('/detect-drug-message', async (req, res) => {
-  const { chat_id, channel_name, username, text, timestamp, keywords_detected } = req.body;
-
-  const savedMessage = await prisma.message.create({
-    data: {
-      chat_id,
-      channel_name,
-      username,
-      text,
-      timestamp: new Date(timestamp),
-      keywords_detected,
-    },
-  });
-
-  notifyClients(savedMessage);
-
-  res.status(200).json(savedMessage);
 });
 
-
-app.listen(PORT, () => {
-    console.log(`Server is running on port ${PORT}`);
-})
+app.listen(3000, () => {
+  console.log('Server running on port 3000');
+});

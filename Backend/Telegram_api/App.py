@@ -41,7 +41,7 @@ async def monitor_messages(update: Update, context: CallbackContext):
     if message_text and any(keyword.lower() in message_text.lower() for keyword in drug_keywords):
         latest_message = {
             "chat_id": chat_id,
-            "channel_name": channel_name,
+            "channel_name": channel_name or "Private",
             "username": username,
             "groupname":groupname,
             "userid":userid,
