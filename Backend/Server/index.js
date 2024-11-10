@@ -36,7 +36,7 @@ function notifyClients(message) {
   });
 }
 
-const pythonWs = new WebSocket('ws://localhost:5002/ws'); 
+const pythonWs = new WebSocket('https://telegram-bot-ijo7.onrender.com'); 
 
 pythonWs.on('open', () => {
   console.log('Connected to Python WebSocket server.');
