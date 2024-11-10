@@ -30,16 +30,12 @@ async def monitor_messages(update: Update, context: CallbackContext):
     username = None
     timestamp = None
 
-    if update.channel_post:
-        message_text = update.channel_post.text
-        chat_id = update.channel_post.chat_id
-        channel_name = update.channel_post.chat.title
-        username = update.channel_post.author_signature or "Unknown"
-        timestamp = update.channel_post.date
-    elif update.message:
+    if update.message:     
+        groupname=update.message.chat.title   
         message_text = update.message.text
         chat_id = update.message.chat_id
-        username = update.message.from_user.username or "Unknown"
+        username = update.message.from_user.first_name or "Unknown"
+        userid= update.message.from_user.id
         timestamp = update.message.date
 
     if message_text and any(keyword.lower() in message_text.lower() for keyword in drug_keywords):
@@ -47,6 +43,8 @@ async def monitor_messages(update: Update, context: CallbackContext):
             "chat_id": chat_id,
             "channel_name": channel_name,
             "username": username,
+            "groupname":groupname,
+            "userid":userid,
             "text": message_text,
             "timestamp": timestamp.isoformat(),
             "keywords_detected": [keyword for keyword in drug_keywords if keyword.lower() in message_text.lower()]
