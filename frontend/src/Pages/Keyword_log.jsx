@@ -16,7 +16,7 @@ const Keyword_log = () => {
         .catch((error) => {
           console.error("Error fetching messages:", error);
         });
-  }, [messageData]);
+  });
 
   return (
     <div className="flex flex-wrap p-5 gap-5 overflow-y-scroll h-screen">

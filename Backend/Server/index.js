@@ -68,7 +68,13 @@ pythonWs.on('message', async (data) => {
 app.get('/messages', async (req, res) => {
   try {
     const messages = await prisma.message.findMany();
-    res.json(messages);
+    const serializedMessages = messages.map(message => ({
+      ...message,
+      chat_id: message.chat_id.toString(), 
+      user_id: message.user_id.toString(), 
+    }));
+
+    res.json(serializedMessages);
   } catch (error) {
     console.error("Error fetching messages:", error);
     res.status(500).json({ error: 'Something went wrong' });
