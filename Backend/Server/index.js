@@ -40,7 +40,8 @@ function notifyClients(message) {
 }
 
 // Connect to the Python FastAPI WebSocket server
-const pythonWs = new WebSocket('ws://localhost:5002/ws'); 
+const pythonWs = new WebSocket('wss://telegram-bot-ijo7.onrender.com/ws');
+
 
 pythonWs.on('open', () => {
   console.log('Connected to Python WebSocket server.');
