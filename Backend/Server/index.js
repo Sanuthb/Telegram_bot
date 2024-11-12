@@ -4,22 +4,18 @@ import { WebSocketServer, WebSocket } from 'ws';
 import cors from 'cors';
 import dotenv from 'dotenv';
 
-// Load environment variables
 dotenv.config();
 
 const prisma = new PrismaClient();
 const app = express();
 const PORT = process.env.PORT || 5000;
 
-// Configure Express to use JSON and CORS
 app.use(express.json());
 app.use(cors());
 
-// Set up WebSocket server on port 5001 for real-time updates to connected clients
 const wss = new WebSocketServer({ port: 5001 });
 let clients = [];
 
-// Handle new WebSocket connections from clients
 wss.on('connection', (ws) => {
   clients.push(ws);
   console.log('Client connected to WebSocket server.');
@@ -30,7 +26,6 @@ wss.on('connection', (ws) => {
   });
 });
 
-// Notify connected clients of detected messages
 function notifyClients(message) {
   clients.forEach((client) => {
     if (client.readyState === WebSocket.OPEN) {
@@ -39,7 +34,6 @@ function notifyClients(message) {
   });
 }
 
-// Connect to the Python FastAPI WebSocket server
 const pythonWs = new WebSocket('wss://telegram-bot-ijo7.onrender.com/ws');
 
 
@@ -47,13 +41,11 @@ pythonWs.on('open', () => {
   console.log('Connected to Python WebSocket server.');
 });
 
-// Listen for messages from the Python WebSocket and save to the database
 pythonWs.on('message', async (data) => {
   try {
     const messageData = JSON.parse(data);
     console.log('Received message from Python WebSocket:', messageData);
 
-    // Save received message to the database
     const savedMessage = await prisma.message.create({
       data: {
         chat_id: messageData.chat_id,
@@ -67,14 +59,12 @@ pythonWs.on('message', async (data) => {
       },
     });
 
-    // Notify connected clients with the new message
     notifyClients(savedMessage);
   } catch (error) {
     console.error('Error processing message from Python WebSocket:', error);
   }
 });
 
-// REST endpoint to retrieve all messages
 app.get('/messages', async (req, res) => {
   try {
     const messages = await prisma.message.findMany();
@@ -85,7 +75,6 @@ app.get('/messages', async (req, res) => {
   }
 });
 
-// REST endpoint to get message statistics
 app.get('/stats', async (req, res) => {
   try {
     const today = new Date();
@@ -110,7 +99,6 @@ app.get('/stats', async (req, res) => {
   }
 });
 
-// REST endpoint to manually save a detected message
 app.post('/detect-drug-message', async (req, res) => {
   const { chat_id, channel_name, username, text, timestamp, keywords_detected } = req.body;
   try {
