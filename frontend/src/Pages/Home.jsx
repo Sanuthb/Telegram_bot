@@ -26,7 +26,7 @@ const Home = () => {
     <div className="p-2 flex h-full flex-col gap-5 md:px-10 overflow-y-scroll md:overflow-y-hidden">
       <div className="bg-secondary w-full rounded-lg flex gap-5 items-center flex-col-reverse md:flex-row">
         <div className=" p-5 md:p-10 flex flex-col gap-2">
-          <h1 className="text-2xl md:text-4xl">Welcome to TraceGad</h1>
+          <h1 className="text-2xl md:text-4xl">Welcome to TraceGuard</h1>
           <p className="text-gray-400">
             TraceGad helps in identifying drug trafficking activities on social
             media by detecting suspicious keywords and images.

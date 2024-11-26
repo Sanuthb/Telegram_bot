@@ -36,7 +36,6 @@ function notifyClients(message) {
 
 const pythonWs = new WebSocket('wss://telegram-bot-ijo7.onrender.com/ws');
 
-
 pythonWs.on('open', () => {
   console.log('Connected to Python WebSocket server.');
 });
@@ -46,32 +45,48 @@ pythonWs.on('message', async (data) => {
     const messageData = JSON.parse(data);
     console.log('Received message from Python WebSocket:', messageData);
 
-    const savedMessage = await prisma.message.create({
-      data: {
-        chat_id: messageData.chat_id,
-        channel_name: messageData.channel_name,
-        username: messageData.username,
-        groupname: messageData.groupname,
-        user_id: messageData.userid,
-        text: messageData.text,
-        timestamp: new Date(messageData.timestamp),
-        keywords_detected: messageData.keywords_detected,
-      },
-    });
+    // Handle missing fields by assigning default values or skipping invalid data
+    const latitude = messageData.latitude || null;
+    const longitude = messageData.longitude || null;
 
-    notifyClients(savedMessage);
+    // Ensure that latitude and longitude exist before updating
+    if (latitude && longitude) {
+      // Update the user's location based on the user_id
+      const updatedMessage = await prisma.message.updateMany({
+        where: {
+          user_id: messageData.userid,  // Find message by user_id
+        },
+        data: {
+          latitude: latitude,   // Update latitude
+          longitude: longitude, // Update longitude
+        },
+      });
+
+      if (updatedMessage.count > 0) {
+        console.log(`Updated location for user_id: ${messageData.userid}`);
+      } else {
+        console.log(`No message found for user_id: ${messageData.userid}`);
+      }
+    } else {
+      console.log('No location data provided, skipping location update.');
+    }
+
   } catch (error) {
     console.error('Error processing message from Python WebSocket:', error);
   }
 });
+
+
 
 app.get('/messages', async (req, res) => {
   try {
     const messages = await prisma.message.findMany();
     const serializedMessages = messages.map(message => ({
       ...message,
-      chat_id: message.chat_id.toString(), 
-      user_id: message.user_id.toString(), 
+      chat_id: message.chat_id.toString(),
+      user_id: message.user_id.toString(),
+      latitude: message.latitude,
+      longitude: message.longitude,
     }));
 
     res.json(serializedMessages);
@@ -106,7 +121,8 @@ app.get('/stats', async (req, res) => {
 });
 
 app.post('/detect-drug-message', async (req, res) => {
-  const { chat_id, channel_name, username, text, timestamp, keywords_detected } = req.body;
+  const { chat_id, channel_name, username, text, timestamp, keywords_detected, latitude, longitude } = req.body;
+
   try {
     const savedMessage = await prisma.message.create({
       data: {
@@ -116,6 +132,8 @@ app.post('/detect-drug-message', async (req, res) => {
         text,
         timestamp: new Date(timestamp),
         keywords_detected,
+        latitude,  
+        longitude, 
       },
     });
 

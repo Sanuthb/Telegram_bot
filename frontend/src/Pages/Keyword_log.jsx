@@ -7,15 +7,15 @@ const Keyword_log = () => {
   const [messageData, setMessageData] = useRecoilState(messagesState);
 
   useEffect(() => {
-        axios
-        .get("https://telegram-bot-node-server.onrender.com/messages")
-        .then((response) => {
-          setMessageData(response.data);
-          console.log("Fetched messages:", response.data);
-        })
-        .catch((error) => {
-          console.error("Error fetching messages:", error );
-        });
+    axios
+      .get("https://telegram-bot-node-server.onrender.com/messages")
+      .then((response) => {
+        setMessageData(response.data);
+        console.log("Fetched messages:", response.data);
+      })
+      .catch((error) => {
+        console.error("Error fetching messages:", error);
+      });
   });
 
   return (
@@ -48,7 +48,16 @@ const Keyword_log = () => {
                   Text: <span> {data.text}</span>
                 </span>
                 <span className="font-medium">
-                  Time: <span> {new Date(data.timestamp).toLocaleString()}</span>
+                  Time:
+                  <span> {new Date(data.timestamp).toLocaleString()}</span>
+                </span>
+                <span className="font-medium">
+                  Latitude:
+                  <span> {data.latitude}</span>
+                </span>
+                <span className="font-medium">
+                  Longitude:
+                  <span> {data.longitude}</span>
                 </span>
               </div>
             </div>
