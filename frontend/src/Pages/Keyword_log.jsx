@@ -14,7 +14,7 @@ const Keyword_log = () => {
           console.log("Fetched messages:", response.data);
         })
         .catch((error) => {
-          console.error("Error fetching messages:", error);
+          console.error("Error fetching messages:", error );
         });
   });
 
