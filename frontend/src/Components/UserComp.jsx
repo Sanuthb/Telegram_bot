@@ -7,7 +7,7 @@ const UserComp = ({ refresh }) => {
 
   const fetchUsers = async () => {
     try {
-      const response = await axios.get("http://localhost:8000/users/getusers");
+      const response = await axios.get("https://telegram-bot-node-server.onrender.com/users/getusers");
       setData( response.data);
     } catch (err) {
       console.error("Error fetching user data:", err);
@@ -21,7 +21,7 @@ const UserComp = ({ refresh }) => {
 
   const handleDeleteUser = async (id) => {
     try {
-      await axios.delete(`http://localhost:8000/users/deleteusers/${id}`);
+      await axios.delete(`https://telegram-bot-node-server.onrender.com/users/deleteusers/${id}`);
       fetchUsers()
     } catch (err) {
       console.error("Error deleting user data:", err);
