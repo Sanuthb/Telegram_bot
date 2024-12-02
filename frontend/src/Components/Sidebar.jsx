@@ -1,16 +1,24 @@
 import React, { useState } from "react";
-import { Menu, ShieldCheck, House, LetterText, View } from "lucide-react";
+import { Menu, ShieldCheck, House, LetterText, User, LogOut } from "lucide-react";
 import { useRecoilState } from "recoil";
 import { activePageState } from "../Atoms/Atoms";
+import { useNavigate } from "react-router-dom";
 
-const Sidebar = () => {
+const Sidebar = ({ role }) => {
   const [menuclicked, setMenuClicked] = useState(false);
 
   const [activePage, setActivePage] = useRecoilState(activePageState);
+  const navigate =useNavigate()
+
 
   const toggleMenu = () => {
     setMenuClicked(!menuclicked);
   };
+
+  const handlelogout= () =>{
+    localStorage.removeItem('token')
+    navigate('/')
+  }
 
   return (
     <div
@@ -22,7 +30,7 @@ const Sidebar = () => {
         <button onClick={toggleMenu} className="hidden md:block w-full">
           <Menu />
         </button>
-        <button  className="block md:hidden w-full">
+        <button className="block md:hidden w-full">
           <Menu />
         </button>
         {!menuclicked && (
@@ -37,7 +45,9 @@ const Sidebar = () => {
           className={`flex w-full items-center justify-start gap-5 hover:bg-accent rounded-lg p-3 cursor-pointer ${
             activePage === "dashboard" ? "bg-accent" : "bg-transparent"
           }`}
-          onClick={()=>{setActivePage("dashboard")}}
+          onClick={() => {
+            setActivePage("dashboard");
+          }}
         >
           <House />
           {!menuclicked && <h1 className="hidden md:block">Dashboard</h1>}
@@ -47,21 +57,33 @@ const Sidebar = () => {
           className={`flex w-full items-center justify-start gap-5 hover:bg-accent rounded-lg p-3 cursor-pointer ${
             activePage === "keyword" ? "bg-accent" : "bg-transparent"
           }`}
-          onClick={()=>{setActivePage("keyword")}}
+          onClick={() => {
+            setActivePage("keyword");
+          }}
         >
           <LetterText />
-          {!menuclicked && <h1  className="hidden md:block">Keyword Log</h1>}
+          {!menuclicked && <h1 className="hidden md:block">Keyword Log</h1>}
         </button>
-
+        {role === "superuser" && (
+          <button
+            className={`flex w-full items-center justify-start gap-5 hover:bg-accent rounded-lg p-3 cursor-pointer ${
+              activePage === "adduser" ? "bg-accent" : "bg-transparent"
+            }`}
+            onClick={() => {
+              setActivePage("adduser");
+            }}
+          >
+            <User />
+            {!menuclicked && <h1 className="hidden md:block">Add Users</h1>}
+          </button>
+        )}
         <button
-          className={`flex w-full items-center justify-start gap-5 hover:bg-accent rounded-lg p-3 cursor-pointer ${
-            activePage === "image" ? "bg-accent" : "bg-transparent"
-          }`}
-          onClick={()=>{setActivePage("image")}}
-        >
-          <View />
-          {!menuclicked && <h1  className="hidden md:block">Image Log</h1>}
-        </button>
+            className={`flex w-full items-center justify-start gap-5 hover:bg-accent rounded-lg p-3 cursor-pointer `}
+            onClick={handlelogout}
+          >
+            <LogOut />
+            {!menuclicked && <h1 className="hidden md:block">Logout</h1>}
+          </button>
       </ul>
     </div>
   );

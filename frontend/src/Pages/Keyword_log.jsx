@@ -2,13 +2,13 @@ import React, { useEffect } from "react";
 import { useRecoilState } from "recoil";
 import { messagesState } from "../Atoms/Atoms";
 import axios from "axios";
-
+// https://telegram-bot-node-server.onrender.com
 const Keyword_log = () => {
   const [messageData, setMessageData] = useRecoilState(messagesState);
 
   useEffect(() => {
     axios
-      .get("https://telegram-bot-node-server.onrender.com/messages")
+      .get("http://localhost:8000/messages")
       .then((response) => {
         setMessageData(response.data);
         console.log("Fetched messages:", response.data);
@@ -31,9 +31,6 @@ const Keyword_log = () => {
               <div className="flex flex-col w-fit p-5">
                 <span className="font-medium">
                   Chat Id: <span> {data.chat_id}</span>
-                </span>
-                <span className="font-medium">
-                  Channel Name: <span> {data.channel_name}</span>
                 </span>
                 <span className="font-medium">
                   Username: <span> {data.username}</span>

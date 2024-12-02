@@ -1,8 +1,11 @@
 import express from 'express';
 import { PrismaClient } from '@prisma/client';
-import { WebSocketServer, WebSocket } from 'ws'; 
+import { WebSocketServer, WebSocket } from 'ws';
 import cors from 'cors';
 import dotenv from 'dotenv';
+import Messageroute from './Routes/Message.js';
+import Statsroute from './Routes/Stats.js';
+import userRouter from './Routes/userRoutes.js';
 
 dotenv.config();
 
@@ -45,105 +48,51 @@ pythonWs.on('message', async (data) => {
     const messageData = JSON.parse(data);
     console.log('Received message from Python WebSocket:', messageData);
 
-    // Handle missing fields by assigning default values or skipping invalid data
+    const { chat_id, username, text, timestamp, keywords_detected, userid,groupname } = messageData;
     const latitude = messageData.latitude || null;
     const longitude = messageData.longitude || null;
 
-    // Ensure that latitude and longitude exist before updating
     if (latitude && longitude) {
-      // Update the user's location based on the user_id
+      // Update the user's location when location data is received
       const updatedMessage = await prisma.message.updateMany({
-        where: {
-          user_id: messageData.userid,  // Find message by user_id
-        },
-        data: {
-          latitude: latitude,   // Update latitude
-          longitude: longitude, // Update longitude
-        },
+        where: { user_id: userid },
+        data: { latitude, longitude },
       });
 
       if (updatedMessage.count > 0) {
-        console.log(`Updated location for user_id: ${messageData.userid}`);
+        console.log(`Updated location for user_id: ${userid}`);
       } else {
-        console.log(`No message found for user_id: ${messageData.userid}`);
+        console.log(`No existing record found for user_id: ${userid}, skipping location update.`);
       }
     } else {
-      console.log('No location data provided, skipping location update.');
-    }
+      // Insert a new message into the database
+      const savedMessage = await prisma.message.create({
+        data: {
+          chat_id,
+          username,
+          user_id: userid,
+          groupname,
+          text,
+          timestamp: new Date(timestamp),
+          keywords_detected,
+          latitude, // Null if not provided
+          longitude, // Null if not provided
+        },
+      });
 
+      notifyClients(savedMessage); // Notify WebSocket clients about the new message
+      console.log('Inserted new message into the database:', savedMessage);
+    }
   } catch (error) {
     console.error('Error processing message from Python WebSocket:', error);
   }
 });
 
-
-
-app.get('/messages', async (req, res) => {
-  try {
-    const messages = await prisma.message.findMany();
-    const serializedMessages = messages.map(message => ({
-      ...message,
-      chat_id: message.chat_id.toString(),
-      user_id: message.user_id.toString(),
-      latitude: message.latitude,
-      longitude: message.longitude,
-    }));
-
-    res.json(serializedMessages);
-  } catch (error) {
-    console.error("Error fetching messages:", error);
-    res.status(500).json({ error: 'Something went wrong' });
-  }
-});
-
-app.get('/stats', async (req, res) => {
-  try {
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-
-    const messagesToday = await prisma.message.count({
-      where: {
-        timestamp: {
-          gte: today, 
-        },
-      },
-    });
-    const totalMessages = await prisma.message.count();
-    res.json({
-      messagesToday,
-      totalMessages,
-      today,
-    });
-  } catch (error) {
-    console.error("Error fetching stats:", error);
-    res.status(500).json({ error: 'Something went wrong' });
-  }
-});
-
-app.post('/detect-drug-message', async (req, res) => {
-  const { chat_id, channel_name, username, text, timestamp, keywords_detected, latitude, longitude } = req.body;
-
-  try {
-    const savedMessage = await prisma.message.create({
-      data: {
-        chat_id,
-        channel_name,
-        username,
-        text,
-        timestamp: new Date(timestamp),
-        keywords_detected,
-        latitude,  
-        longitude, 
-      },
-    });
-
-    notifyClients(savedMessage);
-    res.status(200).json(savedMessage);
-  } catch (error) {
-    console.error("Error saving message:", error);
-    res.status(500).json({ error: 'Something went wrong' });
-  }
-});
+app.use('/messages',Messageroute)
+app.use('/stats',Statsroute)
+app.use('/adduser', userRouter)
+app.use('/loginuser',userRouter)
+app.use('/users',userRouter)
 
 app.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}`);
