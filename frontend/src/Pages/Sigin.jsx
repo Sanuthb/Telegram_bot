@@ -10,7 +10,7 @@ const Sigin = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      const response = await axios.post("https://telegram-bot-node-server.onrender.com/loginuser/auth", {
+      const response = await axios.post("http://localhost:8000/loginuser/auth", {
         username,
         password,
       });

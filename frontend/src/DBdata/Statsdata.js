@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-const API_URL = 'https://telegram-bot-node-server.onrender.com';
+const API_URL = 'http://localhost:8000';
 
 export const fetchStats = async () => {
   try {
