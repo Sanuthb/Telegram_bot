@@ -12,7 +12,7 @@ const AddUsers = () => {
   const handleSubmit = async(e) => {
     e.preventDefault();
     try{
-      const response = await axios.post("http://localhost:8000/adduser",{
+      const response = await axios.post("https://telegram-bot-backend-2tfo.onrender.com/adduser",{
         username,
         password,
         role

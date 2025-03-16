@@ -7,10 +7,9 @@ const Keyword_log = () => {
 
   useEffect(() => {
     axios
-      .get("http://localhost:8000/messages")
+      .get("https://telegram-bot-backend-2tfo.onrender.com/messages")
       .then((response) => {
         setMessageData(response.data);
-        console.log("Fetched messages:", response.data);
       })
       .catch((error) => {
         console.error("Error fetching messages:", error);
