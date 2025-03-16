@@ -37,7 +37,8 @@ function notifyClients(message) {
   });
 }
 
-const pythonWs = new WebSocket('ws:/localhost:5002/ws');
+const pythonWs = new WebSocket('wss://telegram-bot-ijo7.onrender.com/ws');
+
 
 pythonWs.on('open', () => {
   console.log('Connected to Python WebSocket server.');
@@ -53,7 +54,6 @@ pythonWs.on('message', async (data) => {
     const longitude = messageData.longitude || null;
 
     if (latitude && longitude) {
-      // Update the user's location when location data is received
       const updatedMessage = await prisma.message.updateMany({
         where: { user_id: userid },
         data: { latitude, longitude },

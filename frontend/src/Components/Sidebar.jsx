@@ -36,7 +36,7 @@ const Sidebar = ({ role }) => {
         {!menuclicked && (
           <div className="hidden md:flex text-accent">
             <ShieldCheck />
-            <h1 className="text-white font-bold">TraceGuard</h1>
+            <h1 className="text-white font-bold">Project_D</h1>
           </div>
         )}
       </div>
